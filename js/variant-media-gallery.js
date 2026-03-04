@@ -1,3 +1,8 @@
+const SELECTED_VARIANT_SELECTOR = 'variant-selects [data-selected-variant]';
+const MAP_SELECTOR = '[data-variant-media-map]';
+const THUMB_SELECTOR = '[data-target]';
+const SLIDE_SELECTOR = '[data-media-id]';
+
 let lastVariantId = null;
 let lastMediaId = null;
 
