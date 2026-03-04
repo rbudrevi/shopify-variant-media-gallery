@@ -1,0 +1,73 @@
+{%- unless product.has_only_default_variant -%}
+  <variant-selects
+    id="variant-selects-{{ section.id }}"
+    data-section="{{ section.id }}"
+    {{ block.shopify_attributes }}
+  >
+    {%- for option in product.options_with_values -%}
+      {%- liquid
+        assign swatch_count = option.values | map: 'swatch' | compact | size
+        assign picker_type = block.settings.picker_type
+
+        if swatch_count > 0 and block.settings.swatch_shape != 'none'
+          if block.settings.picker_type == 'dropdown'
+            assign picker_type = 'swatch_dropdown'
+          else
+            assign picker_type = 'swatch'
+          endif
+        endif
+
+        assign hide_entire_option = false
+        if option.name == 'Pack Size' and customer.tags contains 'wholesale'
+          assign hide_entire_option = true
+        endif
+        
+        if option.name == 'Design' and option.values.size <= 1
+          assign hide_entire_option = true
+        endif
+      -%}
+
+      {%- unless hide_entire_option -%}
+        <fieldset class="js product-form__input" style="border: none; padding: 0; margin: 0 0 2rem 0;">
+          {%- comment -%} This div holds both "Design" and the specific value on one line {%- endcomment -%}
+          <div style="display: flex; gap: 5px; margin-bottom: 10px; align-items: baseline;">
+            <legend class="form__label" style="margin: 0; padding: 0;">{{ option.name }}:</legend>
+            {%- if option.name == 'Design' -%}
+               <span id="SelectedDesignLabel" class="design-name-label" style="font-weight: bold;">
+                 {{ option.selected_value }}
+               </span>
+            {%- endif -%}
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            {% render 'product-variant-options',
+              product: product,
+              option: option,
+              block: block,
+              picker_type: picker_type
+            %}
+          </div>
+        </fieldset>
+      {%- endunless -%}
+    {%- endfor -%}
+
+    <script type="application/json" data-variant-associated-media>
+{
+  {%- for v in product.variants -%}
+    "{{ v.id }}": [
+      {%- assign files = v.metafields.custom.associated_media.value -%}
+      {%- if files != blank -%}
+        {%- for f in files -%}
+          "{{ f | file_url }}"{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      {%- endif -%}
+    ]{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+}
+</script>
+
+    <script type="application/json" data-selected-variant>
+      {{ product.selected_or_first_available_variant | json }}
+    </script>
+  </variant-selects>
+{%- endunless -%}

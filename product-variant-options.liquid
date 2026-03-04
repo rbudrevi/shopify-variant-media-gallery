@@ -1,0 +1,87 @@
+{%- liquid
+  assign product_form_id = 'product-form-' | append: section.id
+-%}
+
+{%- for value in option.values -%}
+  {%- liquid
+    assign option_disabled = true
+    if value.available
+      assign option_disabled = false
+    endif
+  -%}
+
+  {%- capture input_id -%}
+    {{ section.id }}-{{ option.position }}-{{ forloop.index0 -}}
+  {%- endcapture -%}
+
+  {%- capture input_name -%}
+    {{ option.name }}-{{ option.position }}
+  {%- endcapture -%}
+
+  {%- capture input_dataset -%}
+    data-product-url="{{ value.product_url }}"
+    data-option-value-id="{{ value.id }}"
+  {%- endcapture -%}
+
+  {%- if picker_type == 'button' or picker_type == 'swatch' -%}
+    {%- liquid 
+      assign is_design_option = false
+      if option.name == 'Design'
+        assign is_design_option = true
+      endif
+
+      assign variant = product.variants | where: 'option1', value | first
+      assign icon = variant.metafields.custom.design_image | image_url: width: 120
+    -%}
+      
+      <div class="variant-input-wrapper" style="display: inline-block;">
+        <input
+          type="radio"
+          id="{{ input_id }}"
+          name="{{ input_name | escape }}"
+          value="{{ value | escape }}"
+          form="{{ product_form_id }}"
+          style="position: absolute; opacity: 0; width: 0; height: 0;"
+          {% if value.selected %}checked{% endif %}
+          {% if option_disabled %}class="disabled"{% endif %}
+          {{ input_dataset }}
+        >
+           
+        {% if is_design_option and icon %}
+          <label for="{{ input_id }}" class="design-swatch-label is-design" style="cursor: pointer; display: block; margin: 0; padding: 0; border: none; background: none; overflow: visible;">
+            <img 
+              src="{{ icon }}" 
+              alt="{{ value }}" 
+              class="design-swatch-img" 
+              style="border-radius: 50%; width: 90px; height: 90px; object-fit: cover; display: block; border: 1px solid {% if value.selected %}#4a4a4a{% else %}transparent{% endif %}; transition: all 0.2s ease;"
+            >
+          </label>
+        {% else %}
+          {%- comment -%} Restored Pill Highlighting {%- endcomment -%}
+          <label for="{{ input_id }}" class="pill-label" style="
+            cursor: pointer; 
+            padding: 8px 16px; 
+            border: 1px solid #ccc; 
+            border-radius: 20px; 
+            display: inline-block;
+            transition: all 0.2s ease;
+            {% if value.selected %}
+              background-color: #121212; 
+              color: #ffffff;
+              border-color: #121212;
+            {% else %}
+              background-color: transparent;
+              color: #121212;
+            {% endif %}
+          ">
+            {{ value }}
+          </label>
+        {% endif %}
+      </div>
+
+  {%- elsif picker_type == 'dropdown' or picker_type == 'swatch_dropdown' -%}
+    <option id="{{ input_id }}" value="{{ value | escape }}" {% if value.selected %}selected="selected"{% endif %} {{ input_dataset }}>
+      {{ value }}
+    </option>
+  {%- endif -%}
+{%- endfor -%}
