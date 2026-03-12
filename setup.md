@@ -68,45 +68,27 @@ In Dawn, this is typically:
 
 In custom themes, check `sections/main-product.liquid` for:
 
-    {% render 'product-media-gallery-WA' %}
+    {% render 'product-media-gallery' %}
 
 Inside the snippet, immediately after the opening `<media-gallery>` tag,
 add:
 
 ``` liquid
-<script type="application/json" data-variant-media-map>
+<script type="application/json" data-variant-associated-urls>
 {
   {%- for variant in product.variants -%}
-    {%- assign ids = '' -%}
-
-    {%- assign files = variant.metafields.custom.associated_media.value -%}
-    {%- if files != blank -%}
-      {%- for f in files -%}
-        {%- assign f_url = f | file_url -%}
-        {%- assign f_name = f_url | split: '?' | first | split: '/' | last | downcase -%}
-
-        {%- for m in product.media -%}
-          {%- if m.media_type == 'image' -%}
-            {%- assign m_url = m.preview_image | image_url: width: 1 -%}
-            {%- assign m_name = m_url | split: '?' | first | split: '/' | last | downcase -%}
-
-            {%- if m_name == f_name -%}
-              {%- capture one -%}"{{ section.id }}-{{ m.id }}"{%- endcapture -%}
-              {%- if ids == '' -%}
-                {%- assign ids = one -%}
-              {%- else -%}
-                {%- assign ids = ids | append: ',' | append: one -%}
-              {%- endif -%}
-            {%- endif -%}
-          {%- endif -%}
+    "{{ variant.id }}": [
+      {%- assign associated_files = variant.metafields.custom.associated_media.value -%}
+      {%- if associated_files != blank -%}
+        {%- for file in associated_files -%}
+          "{{ file | file_url }}"{% unless forloop.last %},{% endunless %}
         {%- endfor -%}
-      {%- endfor -%}
-    {%- endif -%}
-
-    "{{ variant.id }}": { "mediaIds": [{{ ids }}] }{% unless forloop.last %},{% endunless %}
+      {%- endif -%}
+    ]{% unless forloop.last %},{% endunless %}
   {%- endfor -%}
 }
 </script>
+
 ```
 
 ------------------------------------------------------------------------
@@ -196,7 +178,7 @@ product gallery.
 
 # Compatibility
 
-Tested with: - Dawn (Shopify reference theme) - Custom Dawn-derived
+Tested with: - Dawn (Shopify reference theme) - Custom Dawn-derived V5.13
 themes
 
 Other themes must: - Use `data-media-id` on slides - Use `data-target`
